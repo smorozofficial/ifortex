@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using TestTask;
+using TestTask.Services;
 using TestTask.Data;
 using TestTask.Services.Interfaces;
 

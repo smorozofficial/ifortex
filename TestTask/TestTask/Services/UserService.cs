@@ -4,7 +4,7 @@ using TestTask.Enums;
 using TestTask.Models;
 using TestTask.Services.Interfaces;
 
-namespace TestTask
+namespace TestTask.Services
 {
 	public class UserService : IUserService
 	{
@@ -17,17 +17,26 @@ namespace TestTask
 
         public Task<User> GetUser()
         {
-            User usr = new User { Id = 1, Email = "user1@gmail.com", Status = UserStatus.Active };
+            var grpOrders = from order in dbContext.Orders.ToList()
+                            group order by order.UserId into grp
+                            select new { userId = grp.Key, count = grp.Count() };
 
-            return Task<User>.Factory.StartNew(() => usr);
+            var maxOrder = grpOrders.MaxBy(item => item.count);
+
+            User maxUser = dbContext.Users.ToList().Find(item => item.Id == maxOrder.userId);
+            
+            return Task<User>.Factory.StartNew(() => new User 
+            { 
+                Id = maxUser.Id, 
+                Email = maxUser.Email, 
+                Status = maxUser.Status 
+            });
         }
 
         public Task<List<User>> GetUsers()
         {
-            User usr = new User { Id = 1, Email = "user1@gmail.com", Status = UserStatus.Active };
-            List<User> users = this.dbContext.Users.ToList();
+            List<User> users = dbContext.Users.Where(user => user.Status == UserStatus.Inactive).ToList();
 
-            
             return Task<List<User>>.Factory.StartNew(() => users);
         }
     }
